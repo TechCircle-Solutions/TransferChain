@@ -21,8 +21,8 @@
 |------|---------|---------|
 | Node.js | 18+ | Runtime |
 | pnpm | 9+ | Package manager |
-| Anvil | latest | Integration tests (from Foundry) |
-| Git | latest | Version control |
+| Rust | 1.82+ | Soroban contract compilation (optional) |
+| Git | Latest | Version control |
 
 ---
 
@@ -51,15 +51,14 @@ pnpm typecheck
 
 ### Integration Test Setup
 
-Integration tests require Anvil (from Foundry):
+Integration tests run against a local Soroban network:
 
 ```bash
-# Install Foundry
-curl -L https://foundry.paradigm.xyz | bash
-foundryup
+# Install Soroban CLI
+cargo install --locked soroban-cli
 
-# Start Anvil (in a separate terminal)
-anvil
+# Start local Soroban network (in a separate terminal)
+soroban lab Local V3
 
 # Run integration tests
 pnpm test:integration
@@ -73,7 +72,7 @@ pnpm test:integration
 |---------|-------------|
 | `pnpm build` | Build the SDK with tsup |
 | `pnpm test:unit` | Run unit tests with Vitest |
-| `pnpm test:integration` | Run integration tests against Anvil |
+| `pnpm test:integration` | Run integration tests against Soroban local network |
 | `pnpm test:all` | Run all tests |
 | `pnpm test:coverage` | Generate coverage report |
 | `pnpm test:watch` | Run tests in watch mode |
@@ -212,7 +211,7 @@ test(integration): add escrow refund scenario
 - [ ] New code has unit tests
 - [ ] Public API has JSDoc documentation
 - [ ] Error handling uses SDK error hierarchy
-- [ ] No raw ethers.js errors leak to consumers
+- [ ] No raw blockchain errors leak to consumers
 - [ ] No `any` types in source code
 - [ ] No secrets or private keys in code
 - [ ] CHANGELOG.md is updated (for releases)

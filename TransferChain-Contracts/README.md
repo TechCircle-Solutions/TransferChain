@@ -1,6 +1,6 @@
 # TransferChain Smart Contracts
 
-A modular smart contract protocol for football transfer workflows, built on [OpenZeppelin](https://www.openzeppelin.com/contracts) and deployed on [Injective EVM](https://injective.com/).
+> **Migration Notice:** This directory contains the **legacy Solidity/Foundry prototype** originally deployed on Injective EVM. The active target implementation uses **Soroban/Rust smart contracts on Stellar**. See [docs/stellar-migration.md](../docs/stellar-migration.md) for the migration plan.
 
 ## Overview
 
@@ -10,7 +10,7 @@ Key properties:
 
 - **Modular** — each contract owns a single domain with no hidden state coupling.
 - **Minimal on-chain state** — player and club metadata lives off-chain via URI pointers.
-- **Multi-token escrow** — supports any ERC-20 payment token.
+- **Multi-asset escrow** — supports configurable payment assets.
 - **Role-based access** — protocol-wide permissioning through `TransferChainAccessControl`.
 - **Upgrade-ready architecture** — designed for future upgradeability without ABI breakage.
 
@@ -24,7 +24,7 @@ TransferChainAccessControl
         ├── ClubRegistry               (club identity)
         ├── TransferMarketplace        (listings, offers)
         ├── TransferAgreementManager   (transfer agreements, clauses)
-        ├── Escrow                     (ERC-20 fund custody)
+        ├── Escrow                     (fund custody)
         └── Treasury                   (protocol revenue)
 ```
 
@@ -33,48 +33,56 @@ TransferChainAccessControl
 | Contract | Responsibility |
 |---|---|
 | `TransferChainAccessControl` | Protocol-wide RBAC, pause/unpause |
-| `TransferChainConfig` | Fee parameters, payment tokens, emergency mode |
+| `TransferChainConfig` | Fee parameters, payment assets, emergency mode |
 | `PlayerRegistry` | Player identity registration, metadata pointers |
 | `ClubRegistry` | Club identity registration, metadata pointers |
 | `TransferMarketplace` | Listing lifecycle, offers, negotiation |
 | `TransferAgreementManager` | Transfer agreements, commercial clauses |
-| `Escrow` | ERC-20 fund custody, release/refund flows |
+| `Escrow` | Fund custody, release/refund flows |
 | `Treasury` | Protocol revenue, controlled withdrawals |
 
-## Deployed Contracts
+## Legacy Deployment (Injective EVM Testnet)
 
-All TransferChain contracts are deployed on the **Injective EVM Testnet** (Chain ID `1439`) and are publicly verifiable on the [Injective Blockscout explorer](https://testnet.blockscout.injective.network/).
+> The following deployment information is historical and refers to the legacy prototype.
 
-| Contract | Address | View on Blockscout |
-|---|---|---|
-| TransferChainAccessControl | `0x4ce4ac389cdb84c4e5cea2d0e9e65f1ecc8b87e5` | [View Contract](https://testnet.blockscout.injective.network/address/0x4ce4ac389cdb84c4e5cea2d0e9e65f1ecc8b87e5) |
-| TransferChainConfig | `0xf0f67e6578e44230924bffd02ae94090136608f1` | [View Contract](https://testnet.blockscout.injective.network/address/0xf0f67e6578e44230924bffd02ae94090136608f1) |
-| PlayerRegistry | `0x49335199e4121fc332cb5b11ce704250dea92cc8` | [View Contract](https://testnet.blockscout.injective.network/address/0x49335199e4121fc332cb5b11ce704250dea92cc8) |
-| ClubRegistry | `0x873ae71139407889650b74b24da51643a0e680eb` | [View Contract](https://testnet.blockscout.injective.network/address/0x873ae71139407889650b74b24da51643a0e680eb) |
-| TransferMarketplace | `0x6bc6dd2cc4f5c2c1ab6b0387ed95ec5b543eef1a` | [View Contract](https://testnet.blockscout.injective.network/address/0x6bc6dd2cc4f5c2c1ab6b0387ed95ec5b543eef1a) |
-| TransferAgreementManager | `0x4e9865d82174376b1246e982311d85b8cc1297f8` | [View Contract](https://testnet.blockscout.injective.network/address/0x4e9865d82174376b1246e982311d85b8cc1297f8) |
-| Escrow | `0xded509f4c002e4013e96cec6b3ad87bf5213c68d` | [View Contract](https://testnet.blockscout.injective.network/address/0xded509f4c002e4013e96cec6b3ad87bf5213c68d) |
-| Treasury | `0x0ea50ae90ed69bd029cc3e3cffce21f6e1e0b9bc` | [View Contract](https://testnet.blockscout.injective.network/address/0x0ea50ae90ed69bd029cc3e3cffce21f6e1e0b9bc) |
+All contracts were deployed on the **Injective EVM Testnet** (Chain ID `1439`). This deployment served as the proof-of-concept for the protocol and is no longer the active target.
+
+| Contract | Address |
+|---|---|
+| TransferChainAccessControl | `0x4ce4ac389cdb84c4e5cea2d0e9e65f1ecc8b87e5` |
+| TransferChainConfig | `0xf0f67e6578e44230924bffd02ae94090136608f1` |
+| PlayerRegistry | `0x49335199e4121fc332cb5b11ce704250dea92cc8` |
+| ClubRegistry | `0x873ae71139407889650b74b24da51643a0e680eb` |
+| TransferMarketplace | `0x6bc6dd2cc4f5c2c1ab6b0387ed95ec5b543eef1a` |
+| TransferAgreementManager | `0x4e9865d82174376b1246e982311d85b8cc1297f8` |
+| Escrow | `0xded509f4c002e4013e96cec6b3ad87bf5213c68d` |
+| Treasury | `0x0ea50ae90ed69bd029cc3e3cffce21f6e1e0b9bc` |
 
 Full deployment manifest: [`deployments/1439.json`](deployments/1439.json)
 
-## Verify Deployment
+## Soroban Target Architecture
 
-All deployed contracts can be inspected and interacted with directly through [Blockscout](https://testnet.blockscout.injective.network/). No additional tooling is required.
+The active implementation targets Soroban smart contracts on Stellar. Each Solidity contract maps to a Soroban contract module:
 
-- **Inspect source code** — verified Solidity source and ABIs are available on every contract page.
-- **Read contract state** — use the "Read Contract" tab to query public functions and view on-chain state.
-- **Write contract methods** — connect a wallet via the "Write Contract" tab to call state-changing functions.
-- **View emitted events** — browse the "Events" tab or filter logs for any contract.
-- **Inspect transactions** — trace every transaction, including internal calls and gas usage.
+| Solidity Contract | Soroban Contract | Status |
+|---|---|---|
+| TransferChainAccessControl | `access_control` | Planned |
+| TransferChainConfig | `config` | Planned |
+| PlayerRegistry | `player_registry` | Planned |
+| ClubRegistry | `club_registry` | Planned |
+| TransferMarketplace | `marketplace` | Planned |
+| TransferAgreementManager | `agreement_manager` | Planned |
+| Escrow | `escrow` | Planned |
+| Treasury | `treasury` | Planned |
+
+See [docs/stellar-migration.md](../docs/stellar-migration.md) for the full migration guide.
 
 ## Security Model
 
-- **Access Control** — `TransferChainAccessControl` uses OpenZeppelin `AccessControl` with role-based permissions.
-- **Ownable** — Config, Treasury, and registries use `Ownable` for admin operations.
-- **Custom Errors** — all reverts use descriptive custom errors, not strings.
-- **Input Validation** — zero-address and zero-amount checks on all external entry points.
-- **Fund Safety** — Escrow and Treasury use `SafeERC20` for all token transfers.
+- **Access Control** — Role-based permissions with admin-controlled role assignment.
+- **Custom Errors** — All reverts use descriptive custom errors, not strings.
+- **Input Validation** — Zero-address and zero-amount checks on all external entry points.
+- **Fund Safety** — Escrow and Treasury use safe transfer patterns for all token operations.
 
 ### Roles
 
@@ -89,7 +97,7 @@ All deployed contracts can be inspected and interacted with directly through [Bl
 | `TREASURY_ADMIN_ROLE` | Treasury operations |
 | `CONFIG_ADMIN_ROLE` | Protocol configuration |
 
-## Development
+## Development (Legacy Prototype)
 
 ### Prerequisites
 
@@ -105,16 +113,12 @@ forge install
 
 ```bash
 forge build
-# or
-make build
 ```
 
 ### Test
 
 ```bash
 forge test -vvv
-# or
-make test
 ```
 
 ### Deploy locally
@@ -122,14 +126,6 @@ make test
 ```bash
 anvil
 forge script script/Deploy.s.sol --rpc-url http://127.0.0.1:8545 --broadcast
-```
-
-### Deploy to testnet
-
-```bash
-cp .env.example .env
-# fill in PRIVATE_KEY and RPC_URL
-make deploy-testnet
 ```
 
 ## Project Structure
@@ -152,16 +148,16 @@ src/
     Treasury.sol                      # Revenue management
 
 script/
-  Deploy.s.sol                        # Deployment script
+  Deploy.s.sol                        # Deployment script (legacy)
 
 test/
   unit/                               # Per-contract unit tests
   integration/                        # Full protocol flow tests
   mocks/
-    ERC20Mock.sol                     # Test token
+    ERC20Mock.sol                     # Test token (legacy)
 
 deployments/
-  1439.json                           # Injective testnet manifest
+  1439.json                           # Historical Injective testnet manifest
 ```
 
 ## License

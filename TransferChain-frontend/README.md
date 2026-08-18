@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TransferChain Frontend
+
+> **Migration Notice:** This frontend is being migrated from EVM wallet integration (wagmi + Reown AppKit) to Stellar wallet adapters (Freighter, Lobstr). See [docs/stellar-migration.md](../docs/stellar-migration.md) for details.
+
+## Overview
+
+Modern web application for interacting with the TransferChain protocol on Stellar.
+
+Built with Next.js 16, React 19, and Tailwind CSS.
+
+## Features
+
+- Player and club registration flows
+- Marketplace browsing and listing creation
+- Wallet connection via Stellar wallet adapters
+- Transaction status and explorer links
+- Responsive design with Tailwind CSS
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Component | Technology |
+|-----------|-----------|
+| Framework | Next.js 16 |
+| UI Library | React 19 |
+| Styling | Tailwind CSS 4 |
+| Wallet | Stellar wallet adapters |
+| State | TanStack React Query |
+| Language | TypeScript 5 |
 
-## Learn More
+## Current Status
 
-To learn more about Next.js, take a look at the following resources:
+The frontend MVP was built with wagmi + Reown AppKit targeting Injective EVM. The active implementation will integrate Stellar wallet adapters for connection and transaction signing.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### What Changes for Stellar
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Component | Current (EVM) | Target (Stellar) |
+|---|---|---|
+| Wallet connection | Reown AppKit + wagmi | Freighter / Lobstr wallet adapter |
+| Network config | Injective EVM Testnet (chainId 1439) | Stellar Testnet |
+| ABI files | Solidity JSON ABI | Soroban contract spec |
+| Transaction handling | wagmi hooks | Stellar SDK transaction builder |
+| Address display | `0x...` | `G...` / `C...` (StrKey) |
+| Block explorer | Blockscout | Stellar Expert |
 
-## Deploy on Vercel
+## Development
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run dev     # Start development server
+npm run build   # Build for production
+npm start       # Start production server
+npm run lint    # Run linter
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+
+MIT

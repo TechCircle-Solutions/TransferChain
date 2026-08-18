@@ -71,7 +71,7 @@ export default function Home() {
   useEffect(() => {
     const steps = [
       { prg: 0, text: "Initializing TransferChain Protocol..." },
-      { prg: 15, text: "Syncing Injective EVM Node..." },
+      { prg: 15, text: "Syncing Stellar Network..." },
       { prg: 35, text: "Fetching World Cup Escrow smart contracts..." },
       { prg: 55, text: "Decrypting Player tri-partite agreement hashes..." },
       { prg: 75, text: "Verifying Verified Club Registry state..." },

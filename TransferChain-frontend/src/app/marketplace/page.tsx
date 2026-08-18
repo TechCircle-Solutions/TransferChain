@@ -143,7 +143,7 @@ export default function Marketplace() {
 
               let position = "Forward";
               let age = 22;
-              let nationality = "Injective";
+              let nationality = "Stellar";
               let imageURI = `/img/soccer/soccer-${(i % 4) + 1}.jpg`;
 
               const cleanName = name.toLowerCase();
@@ -216,7 +216,7 @@ export default function Marketplace() {
       try {
         setLoading(true);
 
-        // Fetch current block height to enforce the 10,000 block search range limit of Injective RPC
+        // Fetch current block height to enforce search range limit
         const currentBlock = await publicClient.getBlockNumber();
         const safeFromBlock = currentBlock > 9500n ? currentBlock - 9500n : 0n;
 
@@ -310,7 +310,7 @@ export default function Marketplace() {
             // Parse metadata values (mocked client-side attributes based on metadata hash)
             let position = "Forward";
             let age = 22;
-            let nationality = "Injective";
+            let nationality = "Stellar";
             let imageURI = `/img/soccer/soccer-${(playerId % 4) + 1}.jpg`;
 
             // Standard preset mapping for beautiful mock data if named correctly
@@ -395,7 +395,7 @@ export default function Marketplace() {
                 TransferChain <span className="text-[#dd1515]">Marketplace</span>
               </h1>
               <p className="text-zinc-400 text-xs sm:text-sm font-light max-w-xl">
-                This page directly queries Injective EVM Testnet event logs (<code className="text-zinc-300 font-mono">PlayerRegistered</code> and <code className="text-zinc-300 font-mono">ListingCreated</code>) and displays players registered in the smart contract registry.
+                This page directly queries Stellar Testnet event logs (<code className="text-zinc-300 font-mono">PlayerRegistered</code> and <code className="text-zinc-300 font-mono">ListingCreated</code>) and displays players registered in the smart contract registry.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -455,7 +455,7 @@ export default function Marketplace() {
         {loading ? (
           <div className="text-center py-24 space-y-4">
             <div className="w-12 h-12 rounded-full border-4 border-zinc-200 border-t-[#dd1515] animate-spin mx-auto" />
-            <p className="text-xs font-mono text-zinc-500 animate-pulse">Scraping Injective EVM event logs from block 0...</p>
+            <p className="text-xs font-mono text-zinc-500 animate-pulse">Fetching Stellar event logs from block 0...</p>
           </div>
         ) : filteredPlayers.length === 0 ? (
           <div className="bg-white border border-zinc-200 text-center py-20 rounded-sm space-y-4">

@@ -1,7 +1,9 @@
-# ADR-0002: ethers.js v6 as Ethereum Library
+# ADR-0002: ethers.js v6 as Ethereum Library (Legacy)
 
-- **Status:** Accepted
+- **Status:** Superseded (by Stellar/Soroban migration)
 - **Date:** 2026-07-13
+
+> **Note:** This ADR documents the original decision made during the Injective EVM prototype phase. The project has since migrated to Stellar/Soroban, and `@stellar/stellar-sdk` has replaced ethers.js as the blockchain client library. This ADR is preserved for historical reference.
 
 ## Context
 

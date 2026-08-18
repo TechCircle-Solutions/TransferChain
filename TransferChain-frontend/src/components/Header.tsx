@@ -18,14 +18,14 @@ export default function Header() {
               PROTOCOL OPERATIONAL
             </span>
             <span className="hidden md:inline">
-              NETWORK: <strong className="text-zinc-200">INJECTIVE EVM (CHAIN 1439)</strong>
+              NETWORK: <strong className="text-zinc-200">STELLAR TESTNET</strong>
             </span>
             <span className="hidden lg:inline">
               GAS: <strong className="text-zinc-200">12 GWEI</strong>
             </span>
           </div>
           <div className="flex items-center gap-3 text-[10px] sm:text-[11px]">
-            <Link href="/#injective-stack" className="hover:text-white transition-colors">Injective Stack</Link>
+            <Link href="/#stellar-stack" className="hover:text-white transition-colors">Stellar Stack</Link>
             <span className="text-zinc-700">|</span>
             <Link href="/marketplace" className="hover:text-white transition-colors">Marketplace</Link>
           </div>
@@ -46,7 +46,7 @@ export default function Header() {
                 TRANSFER<span className="text-[#dd1515]">CHAIN</span>
               </span>
               <p className="text-[9px] sm:text-[10px] text-zinc-500 uppercase tracking-widest font-black -mt-1">
-                INJECTIVE SPORTS ESCROW
+                STELLAR FOOTBALL TRANSFER PROTOCOL
               </p>
             </div>
           </Link>
@@ -112,11 +112,11 @@ export default function Header() {
                 <span className="text-zinc-600 text-xs">→</span>
               </Link>
               <Link
-                href="/#injective-stack"
+                href="/#stellar-stack"
                 onClick={() => setMobileMenuOpen(false)}
                 className="py-2.5 border-b border-zinc-800/80 hover:text-[#dd1515] transition-colors flex justify-between items-center"
               >
-                <span>INJECTIVE STACK</span>
+                <span>STELLAR STACK</span>
                 <span className="text-cyan-400 text-xs">⚡</span>
               </Link>
               <Link

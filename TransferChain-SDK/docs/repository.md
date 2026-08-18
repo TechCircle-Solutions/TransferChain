@@ -1,5 +1,7 @@
 # Repository Structure
 
+> **Migration Notice:** This document describes the SDK repository structure for the legacy ethers.js v6 implementation. The `abi/` directory and `chains.ts` registry are legacy artifacts. The Stellar re-implementation will use Soroban contract specs instead of ABI JSON files.
+
 ## Table of Contents
 
 - [Directory Tree](#directory-tree)

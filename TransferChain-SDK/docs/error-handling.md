@@ -1,5 +1,7 @@
 # Error Handling
 
+> **Migration Notice:** This document describes the error handling architecture for the legacy ethers.js v6 implementation. The error normalization pipeline (ethers.js → SDK errors) will be updated for Stellar/Soroban error sources during migration.
+
 ## Table of Contents
 
 - [Error Hierarchy](#error-hierarchy)

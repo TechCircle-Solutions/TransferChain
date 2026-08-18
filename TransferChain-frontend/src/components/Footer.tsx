@@ -23,13 +23,13 @@ export default function Footer() {
                 TRANSFER<span className="text-[#dd1515]">CHAIN</span>
               </span>
               <p className="text-xs leading-relaxed text-zinc-400">
-                Institutional-grade settlement registry and sports transfer escrow powered by Injective EVM smart contracts.
+                Institutional-grade settlement registry and sports transfer escrow powered by Stellar smart contracts.
               </p>
             </div>
             <div className="pt-2">
               <span className="inline-flex items-center gap-2 bg-[#dd1515]/10 text-[#dd1515] text-[10px] font-mono font-bold px-3 py-1.5 rounded border border-[#dd1515]/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#dd1515] animate-pulse" />
-                INJECTIVE EVM 
+                STELLAR NETWORK 
               </span>
             </div>
           </div>
@@ -53,10 +53,10 @@ export default function Footer() {
               Documentation
             </h4>
             <ul className="space-y-2.5 text-xs font-medium">
-              <li><Link href="/#injective-stack" className="hover:text-[#dd1515] transition-colors flex items-center gap-1.5"><span>›</span> x/402 Micropayments</Link></li>
-              <li><Link href="/#injective-stack" className="hover:text-[#dd1515] transition-colors flex items-center gap-1.5"><span>›</span> Circle CCTP Bridge</Link></li>
-              <li><Link href="/#injective-stack" className="hover:text-[#dd1515] transition-colors flex items-center gap-1.5"><span>›</span> MCP Agent Server API</Link></li>
-              <li><Link href="/#injective-stack" className="hover:text-[#dd1515] transition-colors flex items-center gap-1.5"><span>›</span> Agent Skills Engine</Link></li>
+              <li><Link href="/#stellar-stack" className="hover:text-[#dd1515] transition-colors flex items-center gap-1.5"><span>›</span> Stellar Smart Contracts</Link></li>
+              <li><Link href="/#stellar-stack" className="hover:text-[#dd1515] transition-colors flex items-center gap-1.5"><span>›</span> Soroban Escrow Protocol</Link></li>
+              <li><Link href="/#stellar-stack" className="hover:text-[#dd1515] transition-colors flex items-center gap-1.5"><span>›</span> Stellar SDK</Link></li>
+              <li><Link href="/#stellar-stack" className="hover:text-[#dd1515] transition-colors flex items-center gap-1.5"><span>›</span> Developer Tools</Link></li>
               <li><Link href="/#activity" className="hover:text-[#dd1515] transition-colors flex items-center gap-1.5"><span>›</span> World Cup Audit Logs</Link></li>
             </ul>
           </div>

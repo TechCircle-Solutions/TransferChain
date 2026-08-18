@@ -247,7 +247,7 @@ export default function RegisterPlayer() {
             const log = addLocalLog(
               "PlayerRegistered",
               "PlayerRegistry.sol",
-              `Player Registered: ${currentPlayerName} (ID: ${newPlayer.id}) on Injective EVM. Tx: ${txHash}`
+              `Player Registered: ${currentPlayerName} (ID: ${newPlayer.id}) on Stellar Testnet. Tx: ${txHash}`
             );
 
             if (log) {

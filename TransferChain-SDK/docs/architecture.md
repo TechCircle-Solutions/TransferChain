@@ -18,9 +18,11 @@
 
 ## Executive Summary
 
-The TransferChain SDK is the only supported path for interacting with the TransferChain smart contracts. It wraps 8 on-chain contracts (75 functions, 32 events, 41 custom errors) into a typed, framework-agnostic TypeScript library built on ethers.js v6.
+**Migration Notice:** The SDK is being migrated from ethers.js v6 (EVM) to `@stellar/stellar-sdk` (Stellar/Soroban). The current ethers.js implementation serves as the architecture reference. All design patterns, domain clients, and API surfaces are designed to be preserved across the migration.
 
-Applications never manage blockchain infrastructure directly. No raw ethers.js usage, no ABI imports, no address management, no manual event decoding. The SDK owns all blockchain communication.
+The TransferChain SDK is the only supported path for interacting with the TransferChain smart contracts. It wraps 8 on-chain contract domains into a typed, framework-agnostic TypeScript library.
+
+Applications never manage blockchain infrastructure directly. No raw blockchain library usage, no ABI imports, no address management, no manual event decoding. The SDK owns all blockchain communication.
 
 Built with TypeScript, pnpm, Vitest, and tsup. Runs in Node.js, browsers, and React Native.
 
@@ -28,11 +30,11 @@ Built with TypeScript, pnpm, Vitest, and tsup. Runs in Node.js, browsers, and Re
 
 ## Vision
 
-**Short-term (v1.x):** A complete typed client library for all TransferChain contracts on Injective EVM. Any developer reads on-chain state, submits transactions, subscribes to events, and resolves metadata using a single dependency.
+**Short-term (v1.x):** A complete typed client library for all TransferChain contracts on Stellar. Any developer reads on-chain state, submits transactions, subscribes to events, and resolves metadata using a single dependency.
 
-**Mid-term (v2.x):** Multi-chain support for additional EVM-compatible deployments. Account abstraction via ERC-4337. Plugin system for community extensions.
+**Mid-term (v2.x):** React hooks library, CLI tooling, sponsored transaction support, plugin system for community extensions.
 
-**Long-term:** The canonical interface for football transfer infrastructure on-chain.
+**Long-term:** The canonical interface for football transfer infrastructure on Stellar.
 
 ---
 
@@ -45,7 +47,7 @@ Built with TypeScript, pnpm, Vitest, and tsup. Runs in Node.js, browsers, and Re
 | 3 | **Predictable API surface** | The API models the domain, not blockchain infrastructure |
 | 4 | **Minimal surface area** | Every public export must earn its place |
 | 5 | **Tree-shakeable by default** | Consumers pay only for what they use |
-| 6 | **Errors are first-class** | Applications never see raw ethers.js errors |
+| 6 | **Errors are first-class** | Applications never see raw blockchain library errors |
 | 7 | **Framework agnostic** | Zero dependencies on React, Next.js, or any runtime |
 | 8 | **Forward-compatible** | Multi-chain and AA interfaces exist; implementations ship when needed |
 
@@ -77,7 +79,7 @@ graph TB
     end
 
     subgraph "Infrastructure Services"
-        F1[ProviderManager]
+        F1[ServerManager]
         F2[SignerManager]
         F3[ContractRegistry]
         F4[TransactionManager]
@@ -91,8 +93,8 @@ graph TB
     end
 
     subgraph "External Dependencies"
-        H1["ethers.js v6"]
-        H2["JSON-RPC Provider"]
+        H1["@stellar/stellar-sdk"]
+        H2["Soroban RPC"]
         H3["IPFS Gateway"]
     end
 
@@ -119,9 +121,9 @@ graph TB
 |-------|-----------|----------------|
 | **Presentation** | `TransferChain` facade | Single entry point, consumer-facing API |
 | **Domain** | 8 contract clients | Typed wrappers around each smart contract |
-| **Infrastructure** | ProviderManager, SignerManager, ContractRegistry, TransactionManager, EventManager, MetadataResolver | Blockchain communication, caching, error normalization |
+| **Infrastructure** | ServerManager, SignerManager, ContractRegistry, TransactionManager, EventManager, MetadataResolver | Blockchain communication, caching, error normalization |
 | **Extension** | Middleware, Plugins | Cross-cutting concerns, extensibility |
-| **External** | ethers.js v6, JSON-RPC, IPFS | Third-party dependencies |
+| **External** | @stellar/stellar-sdk, Soroban RPC, IPFS | Third-party dependencies |
 
 ---
 
@@ -146,14 +148,14 @@ graph TB
 |-----------|-----------|---------|
 | Language | TypeScript | 5.x |
 | Runtime | Node.js | 18+ |
-| Ethereum Library | ethers.js | v6 |
+| Blockchain Client | @stellar/stellar-sdk | Latest |
 | Package Manager | pnpm | 9+ |
 | Bundler | tsup | 8.x |
 | Test Framework | Vitest | 3.x |
 | Linter | ESLint | 9.x |
 | Formatter | Prettier | 3.x |
-| Target Chain | Injective EVM | — |
-| Token Standard | ERC-20 | — |
+| Target Chain | Stellar | — |
+| Token Standard | Soroban tokens / Stellar assets | — |
 
 ---
 
@@ -165,16 +167,16 @@ graph TB
 import { TransferChain } from "@transferchain/sdk";
 
 const tc = new TransferChain({
-  chainId: 1439,
-  rpcUrl: "https://k8s.testnet.json-rpc.injective.network",
-  privateKey: "0x...",
+  networkPassphrase: "Test SDF Network ; September 2015",
+  rpcUrl: "https://soroban-testnet.stellar.org",
+  secretKey: "S...",
 });
 ```
 
 ### Read on-chain state
 
 ```typescript
-const player = await tc.players.getPlayer("0xBEEF...");
+const player = await tc.players.getPlayer("GA...");
 console.log(player.name, player.status);
 ```
 
@@ -182,10 +184,10 @@ console.log(player.name, player.status);
 
 ```typescript
 const result = await tc.marketplace.createListing({
-  seller: "0xBEEF...",
+  seller: "GA...",
   playerId: 1n,
   clubId: 1n,
-  price: 1000n * 10n ** 18n,
+  price: 1000n * 10n ** 7n,
   metadataUri: "ipfs://Qm...",
 });
 

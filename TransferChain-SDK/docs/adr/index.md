@@ -16,7 +16,7 @@ Each ADR follows a lightweight format:
 | ADR | Title | Status | Date |
 |-----|-------|--------|------|
 | [0001](./0001-sdk-first.md) | SDK-First Principle | Accepted | 2026-07-13 |
-| [0002](./0002-ethers-v6.md) | ethers.js v6 as Ethereum Library | Accepted | 2026-07-13 |
+| [0002](./0002-ethers-v6.md) | ethers.js v6 as Ethereum Library (Legacy) | Superseded | 2026-07-13 |
 | [0003](./0003-provider-manager.md) | Provider Manager Pattern | Accepted | 2026-07-13 |
 | [0004](./0004-manual-dependency-injection.md) | Manual Dependency Injection | Accepted | 2026-07-13 |
 | [0005](./0005-no-query-result-caching.md) | No Query Result Caching | Accepted | 2026-07-13 |

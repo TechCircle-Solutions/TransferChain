@@ -22,9 +22,9 @@ The `TransferChain` class accepts a configuration object at construction time.
 import { TransferChain } from "@transferchain/sdk";
 
 const tc = new TransferChain({
-  chainId: 1439,
-  rpcUrl: "https://k8s.testnet.json-rpc.injective.network",
-  privateKey: "0x...",
+  networkPassphrase: "Test SDF Network ; September 2015",
+  rpcUrl: "https://soroban-testnet.stellar.org",
+  secretKey: "S...",
 });
 ```
 
@@ -32,9 +32,9 @@ The SDK operates in read-only mode if no signer is provided:
 
 ```typescript
 const tc = new TransferChain({
-  chainId: 1439,
-  rpcUrl: "https://k8s.testnet.json-rpc.injective.network",
-  // No privateKey or signer — read-only mode
+  networkPassphrase: "Test SDF Network ; September 2015",
+  rpcUrl: "https://soroban-testnet.stellar.org",
+  // No secretKey or signer — read-only mode
 });
 ```
 
@@ -44,22 +44,22 @@ const tc = new TransferChain({
 
 ```typescript
 interface SdkConfig {
-  /** Chain ID (required) */
-  chainId: number;
+  /** Stellar network passphrase (required) */
+  networkPassphrase: string;
 
-  /** JSON-RPC endpoint URL (required unless provider is provided) */
+  /** Stellar RPC endpoint URL (required unless server is provided) */
   rpcUrl: string;
 
-  /** Private key for signing transactions (optional — read-only if omitted) */
-  privateKey?: string;
+  /** Secret key for signing transactions (optional — read-only if omitted) */
+  secretKey?: string;
 
-  /** Pre-built ethers.js Signer instance (optional — overrides privateKey) */
-  signer?: ethers.Signer;
+  /** Pre-built Stellar Keypair instance (optional — overrides secretKey) */
+  keypair?: Keypair;
 
-  /** Pre-built ethers.js Provider instance (optional — overrides rpcUrl) */
-  provider?: ethers.Provider;
+  /** Pre-built SorobanRpc.Server instance (optional — overrides rpcUrl) */
+  server?: SorobanRpc.Server;
 
-  /** Contract addresses per chain (optional — falls back to built-in manifest) */
+  /** Contract addresses (optional — falls back to built-in manifest) */
   deployment?: DeploymentManifest;
 
   /** Logger implementation (optional — silent by default) */
@@ -106,29 +106,26 @@ This is a deliberate design choice that eliminates state-management bugs.
 The SDK does not hardcode contract addresses. A `DeploymentManifest` maps chain IDs to deployed addresses:
 
 ```typescript
-interface ChainDeployment {
-  transferChainAccessControl: string;
-  transferChainConfig: string;
+interface DeploymentManifest {
+  accessControl: string;
+  config: string;
   playerRegistry: string;
   clubRegistry: string;
-  transferMarketplace: string;
-  transferAgreementManager: string;
+  marketplace: string;
+  agreementManager: string;
   escrow: string;
   treasury: string;
 }
-
-type DeploymentManifest = Record<number, ChainDeployment>;
 ```
 
 ### Built-In Manifest
 
 The SDK ships with a built-in manifest for known deployments:
 
-| Chain | Chain ID | Status |
-|-------|----------|--------|
-| Injective Testnet | 1439 | Supported |
-| Injective EVM Testnet (Legacy) | 8888 | Legacy |
-| Injective EVM Mainnet | 525 | Planned |
+| Network | Status |
+|---------|--------|
+| Stellar Testnet | Planned |
+| Stellar Mainnet | Planned |
 
 ### Custom Manifest
 
@@ -136,19 +133,17 @@ Override or extend the built-in manifest via the `deployment` config option:
 
 ```typescript
 const tc = new TransferChain({
-  chainId: 31337,
-  rpcUrl: "http://localhost:8545",
+  networkPassphrase: "Test SDF Network ; September 2015",
+  rpcUrl: "https://soroban-testnet.stellar.org",
   deployment: {
-    31337: {
-      transferChainAccessControl: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      transferChainConfig: "0xe7f1725E7734CE288D8487fA04914703BF038940",
-      playerRegistry: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
-      clubRegistry: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB8aC9",
-      transferMarketplace: "0xDc64Aa14a006F33526Ea98471305d3C9aEE6e1b7",
-      transferAgreementManager: "0x5FC8d32690cc91D4c39d99302695952D75708050",
-      escrow: "0x0165878A399126580D14De7532058f3796F93751",
-      treasury: "0xa513E6E4b8f2a923D98E0c1c2a23A231B3fc443E",
-    },
+    accessControl: "C...",
+    config: "C...",
+    playerRegistry: "C...",
+    clubRegistry: "C...",
+    marketplace: "C...",
+    agreementManager: "C...",
+    escrow: "C...",
+    treasury: "C...",
   },
 });
 ```
@@ -172,9 +167,9 @@ Environment variables are a development convenience only. They are never read in
 
 | Environment Variable | Maps To | Description |
 |---------------------|---------|-------------|
-| `TRANSFERCHAIN_CHAIN_ID` | `config.chainId` | Target chain ID |
-| `TRANSFERCHAIN_RPC_URL` | `config.rpcUrl` | RPC endpoint URL |
-| `TRANSFERCHAIN_PRIVATE_KEY` | `config.privateKey` | Signer private key |
+| `TRANSFERCHAIN_NETWORK_PASSPHRASE` | `config.networkPassphrase` | Stellar network passphrase |
+| `TRANSFERCHAIN_RPC_URL` | `config.rpcUrl` | Stellar RPC endpoint URL |
+| `TRANSFERCHAIN_SECRET_KEY` | `config.secretKey` | Signer secret key |
 
 Use the optional `fromEnv()` helper to load configuration from environment variables:
 
@@ -195,20 +190,14 @@ Configure default parameters for all transactions:
 
 ```typescript
 interface TransactionDefaults {
-  /** Number of confirmations to wait (default: 1) */
-  confirmations?: number;
-
   /** Timeout in milliseconds for transaction confirmation (default: 120000) */
   timeout?: number;
 
-  /** Buffer percentage added to gas estimates (default: 20%) */
-  gasBuffer?: bigint;
+  /** Whether to simulate transactions before submission (default: true) */
+  simulate?: boolean;
 
-  /** Override maxFeePerGas for all transactions */
-  maxFeePerGas?: bigint;
-
-  /** Override maxPriorityFeePerGas for all transactions */
-  maxPriorityFeePerGas?: bigint;
+  /** Resource fee limit override (in stroops) */
+  resourceFeeLimit?: bigint;
 }
 ```
 

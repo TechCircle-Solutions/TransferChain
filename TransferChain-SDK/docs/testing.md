@@ -1,5 +1,7 @@
 # Testing Strategy
 
+> **Migration Notice:** This document describes the testing strategy for the legacy ethers.js v6 implementation. Integration test setup has been updated to reference Soroban local networks. Unit test structure and coverage targets remain applicable to the Stellar re-implementation.
+
 ## Table of Contents
 
 - [Testing Tiers](#testing-tiers)

@@ -1,8 +1,10 @@
 # TransferChain Protocol Architecture
 
+> **Migration Notice:** This document describes the original architecture for the Solidity/Foundry prototype deployed on Injective EVM. It is preserved as a legacy reference. The active target implementation uses Soroban/Rust smart contracts on Stellar. See [docs/stellar-migration.md](../../docs/stellar-migration.md) for the migration plan.
+
 ## 1. Purpose and Scope
 
-This repository will contain the smart contract layer for TransferChain only. The protocol is intended to be production-grade, modular, and suitable for long-term evolution within the Injective ecosystem and beyond.
+This repository contains the smart contract layer for TransferChain. The protocol is intended to be production-grade, modular, and suitable for long-term evolution.
 
 This architecture is intentionally designed to:
 
@@ -469,9 +471,9 @@ No cross-chain logic is required for the MVP, but the architecture should not bl
 
 ---
 
-## 14. Foundry Project Structure
+## 14. Foundry Project Structure (Legacy)
 
-A scalable Foundry layout for this protocol should look like this:
+The following is the legacy Foundry project layout used for the Injective EVM prototype. The Stellar/Soroban implementation will use a different structure optimized for Soroban contract modules.
 
 ```text
 src/

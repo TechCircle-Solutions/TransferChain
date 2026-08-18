@@ -2,6 +2,8 @@ import { cookieStorage, createStorage, http } from '@wagmi/core'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 import { defineChain } from '@reown/appkit/networks'
 
+// Migration: This Injective EVM chain definition will be replaced with
+// Stellar Testnet config when wagmi/Reown is replaced with Stellar wallet adapters.
 export const injectiveSepolia = defineChain({
   id: 1439,
   caipNetworkId: 'eip155:1439',

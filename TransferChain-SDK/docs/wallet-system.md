@@ -1,5 +1,7 @@
 # Wallet System
 
+> **Migration Notice:** This document describes the target Stellar wallet architecture. The current implementation uses ethers.js v6 SignerManager as the legacy reference.
+
 ## Table of Contents
 
 - [SignerManager](#signermanager)
@@ -13,63 +15,69 @@
 
 ## SignerManager
 
-The `SignerManager` holds the active `ethers.Signer` instance and provides it to the `ContractRegistry` and `TransactionManager` for write operations.
+The `SignerManager` holds the active signing identity and provides it to the `TransactionManager` for write operations.
 
 ### Interface
 
 ```typescript
 interface ISignerManager {
-  /** Get the active signer, or undefined if in read-only mode */
-  getSigner(): ethers.Signer | undefined;
+  /** Get the active keypair, or undefined if in read-only mode */
+  getKeypair(): Keypair | undefined;
 
   /** Check if a signer is available */
   hasSigner(): boolean;
 }
 ```
 
-### Instantiation
-
-```typescript
-// With private key
-const signerManager = new SignerManager(config, providerManager);
-
-// Without signer (read-only mode)
-const signerManager = new SignerManager({ ...config, privateKey: undefined }, providerManager);
-```
-
 ---
 
 ## Signer Sources
 
-The SDK accepts signers from multiple sources:
+The SDK accepts signing identity from multiple sources:
 
-### Private Key
+### Secret Key
 
-The most common pattern. A raw private key string creates an `ethers.Wallet` attached to the provider:
+The most common pattern. A Stellar secret key creates a `Keypair`:
 
 ```typescript
 const tc = new TransferChain({
-  chainId: 8888,
-  rpcUrl: "https://evm.injective.network",
-  privateKey: "0x...",
+  networkPassphrase: "Test SDF Network ; September 2015",
+  rpcUrl: "https://soroban-testnet.stellar.org",
+  secretKey: "S...",
 });
 ```
 
-### Pre-Built Signer
+### Pre-Built Keypair
 
-For environments where the SDK does not manage the key (browser wallets, hardware wallets, AA smart accounts):
+For environments where the SDK does not manage the key:
 
 ```typescript
+const keypair = Keypair.fromSecret("S...");
 const tc = new TransferChain({
-  chainId: 8888,
-  rpcUrl: "https://evm.injective.network",
-  signer: metamaskSigner, // or WalletConnect, Safe, etc.
+  networkPassphrase: "Test SDF Network ; September 2015",
+  rpcUrl: "https://soroban-testnet.stellar.org",
+  keypair,
+});
+```
+
+### Wallet Adapter (Browser)
+
+For browser applications, use a Stellar wallet adapter (Freighter, Lobstr):
+
+```typescript
+import { FreighterWallet } from "@transferchain/sdk/wallets";
+
+const wallet = new FreighterWallet();
+const tc = new TransferChain({
+  networkPassphrase: "Test SDF Network ; September 2015",
+  rpcUrl: "https://soroban-testnet.stellar.org",
+  wallet,
 });
 ```
 
 ### Priority
 
-If both `privateKey` and `signer` are provided, `signer` takes precedence.
+If both `secretKey` and `keypair` are provided, `keypair` takes precedence. If `wallet` is provided, it takes precedence over both.
 
 ---
 
@@ -80,26 +88,6 @@ When no signer is provided, the SDK operates in full read-only mode:
 - All read methods work normally
 - All write methods throw `ValidationError` with code `SIGNER_REQUIRED`
 
-```typescript
-const tc = new TransferChain({
-  chainId: 8888,
-  rpcUrl: "https://evm.injective.network",
-});
-
-// Read works
-const player = await tc.players.getPlayer("0xBEEF...");
-
-// Write throws
-await tc.marketplace.createListing(params);
-// throws: ValidationError(SIGNER_REQUIRED, "A signer is required for write operations")
-```
-
-### Why Enforce at the SDK Level
-
-- Provides a clear, consistent error message instead of a cryptic ethers.js failure
-- Allows consumers to conditionally enable write functionality
-- Prevents accidental write attempts in read-only contexts
-
 ---
 
 ## Write Operations
@@ -107,46 +95,12 @@ await tc.marketplace.createListing(params);
 When a domain client method requires a write, the flow is:
 
 1. Domain client calls `TransactionManager.execute()`
-2. `TransactionManager` obtains the signer from `SignerManager`
-3. The `ContractRegistry` provides a signer-attached contract instance
-4. The transaction is estimated, signed, submitted, and confirmed
+2. `TransactionManager` obtains the keypair from `SignerManager`
+3. The `TransactionManager` builds the Soroban transaction
+4. The transaction is simulated, signed, and submitted
 5. The result is returned as `TransactionResult<T>`
 
-The domain client never handles the signer directly. It only calls `TransactionManager.execute()` with the contract name, function name, and arguments.
-
----
-
-## Multi-Signer Future
-
-The current implementation holds a single signer. The architecture supports future extension to multiple signers without breaking changes:
-
-### Possible Future Pattern
-
-```typescript
-const tc = new TransferChain({
-  chainId: 8888,
-  rpcUrl: "https://evm.injective.network",
-  signers: {
-    default: hotWallet,          // Used for small operations
-    treasury: coldWallet,        // Used for high-value operations
-  },
-});
-
-await tc.escrow.deposit(params, { signerRole: "treasury" });
-```
-
-### What Would Change
-
-- `SignerManager` gains a `getSigner(role?: string)` method
-- `TransactionManager` accepts an optional signer role override
-- Domain clients pass through the signer role option
-
-### What Would NOT Change
-
-- The `TransferChain` facade API
-- The domain client read methods
-- The `TransactionResult` return type
-- The event system
+The domain client never handles the signer directly.
 
 ---
 
@@ -156,16 +110,11 @@ await tc.escrow.deposit(params, { signerRole: "treasury" });
 
 | Rule | Description |
 |------|-------------|
-| No storage | Private keys are never stored in localStorage, cookies, or disk |
-| No logging | Private keys are never logged, even at debug level |
-| No transmission | Keys are only sent to the configured RPC endpoint via ethers.js |
-| No validation beyond ethers.js | The SDK does not validate key format — ethers.js handles this |
+| No storage | Secret keys are never stored in localStorage, cookies, or disk |
+| No logging | Secret keys are never logged, even at debug level |
+| No transmission | Keys are only sent to the configured RPC endpoint via the Stellar SDK |
 | No key generation | The SDK never generates keys internally |
 
 ### Environment Safety
 
-For browser and mobile applications, use pre-built `Signer` instances from wallet providers (MetaMask, WalletConnect, etc.) instead of raw private keys. The SDK never prompts for key input or accesses browser storage.
-
-### Key in Environment Variables
-
-The `fromEnv()` helper loads keys from environment variables for development convenience. This pattern is explicitly discouraged in production.
+For browser applications, use wallet adapters (Freighter, Lobstr) instead of raw secret keys. The SDK never prompts for key input or accesses browser storage.

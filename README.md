@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Solidity-0.8.33-363636?style=for-the-badge&logo=solidity" alt="Solidity" />
+  <img src="https://img.shields.io/badge/Rust-1.82-CE422B?style=for-the-badge&logo=rust" alt="Rust" />
+  <img src="https://img.shields.io/badge/Soroban-Smart%20Contracts-blue?style=for-the-badge" alt="Soroban" />
+  <img src="https://img.shields.io/badge/Stellar-Network-08B5E5?style=for-the-badge&logo=stellar" alt="Stellar" />
   <img src="https://img.shields.io/badge/TypeScript-5.5-3178C6?style=for-the-badge&logo=typescript" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Foundry-Forge-F2E9C5?style=for-the-badge" alt="Foundry" />
-  <img src="https://img.shields.io/badge/Injective-EVM-F46A3E?style=for-the-badge" alt="Injective EVM" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js" alt="Next.js" />
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License" />
@@ -12,7 +12,7 @@
 
 <p align="center">
   <strong>Decentralized Football Transfer Protocol</strong><br/>
-  Transparent, trustless, and efficient football transfers powered by blockchain.
+  Transparent, trustless, and efficient football transfers built on Stellar.
 </p>
 
 <p align="center">
@@ -42,11 +42,11 @@ These problems are not just operational — they undermine the integrity of the 
 
 ## Our Solution
 
-TransferChain replaces the fragmented, trust-dependent football transfer system with a transparent, blockchain-based protocol built on [Injective EVM](https://injective.com/).
+TransferChain replaces the fragmented, trust-dependent football transfer system with a transparent, blockchain-based protocol built on [Stellar](https://stellar.org/).
 
 ### How It Works
 
-1. **Smart Contracts** — Core transfer logic lives on-chain in auditable, permissioned smart contracts. Player and club identities are registered on-chain with metadata stored on IPFS.
+1. **Smart Contracts** — Core transfer logic lives on-chain in auditable Soroban smart contracts. Player and club identities are registered on-chain with metadata stored off-chain via URI pointers.
 
 2. **Escrow Settlement** — Transfer fees are held in smart contract escrow until all conditions are met. No intermediary controls the funds — the protocol enforces the rules.
 
@@ -68,6 +68,21 @@ TransferChain replaces the fragmented, trust-dependent football transfer system 
 
 ---
 
+## Why Stellar?
+
+TransferChain is built on Stellar for technically defensible reasons:
+
+- **Open-Source Network** — Stellar is a fully open-source, decentralized payment network with a public blockchain maintained by a global set of validators.
+- **Soroban Smart Contracts** — Stellar's integrated smart-contract platform (Soroban) enables Turing-complete contract logic compiled to WebAssembly via Rust.
+- **Low-Cost Transactions** — Stellar transactions cost fractions of a cent, making the protocol economically viable for transfers of all sizes.
+- **Efficient Settlement** — Stellar's consensus protocol (SCP) achieves 3-5 second finality, enabling rapid escrow release and settlement.
+- **Asset Infrastructure** — Stellar's native asset model (trustlines, issuing accounts) provides a robust foundation for representing transfer settlement tokens and escrowed funds.
+- **Sponsored Transactions** — Stellar supports fee-b sponsorship and authorization-entry patterns, enabling future gasless UX for clubs and players.
+- **Developer Tooling** — The Stellar SDK, Soroban CLI, and Stellar Expert explorer provide a mature development and deployment ecosystem.
+- **Accessible Financial Infrastructure** — Stellar's focus on financial inclusion aligns with TransferChain's mission to make football transfers accessible to clubs worldwide.
+
+---
+
 ## Architecture
 
 ```mermaid
@@ -80,46 +95,48 @@ flowchart TB
 
     subgraph SDK["TransferChain SDK"]
         direction LR
-        CC["Contract Clients"]
+        DC["Domain Clients"]
         EV["Event Manager"]
         WF["Workflow Engine"]
         MD["Metadata Resolver"]
     end
 
-    subgraph Contracts["Smart Contracts (Solidity)"]
+    subgraph Contracts["Smart Contracts (Soroban / Rust)"]
         direction LR
-        AC["AccessControl"]
-        PR["PlayerRegistry"]
-        CR["ClubRegistry"]
-        TM["TransferMarketplace"]
-        TA["TransferAgreementManager"]
-        ES["Escrow"]
-        TR["Treasury"]
+        AC["access_control"]
+        PR["player_registry"]
+        CR["club_registry"]
+        TM["marketplace"]
+        TA["agreement_manager"]
+        ES["escrow"]
+        TR["treasury"]
     end
 
-    subgraph Chain["Injective EVM"]
+    subgraph Network["Stellar Network"]
         direction LR
-        EVM["EVM Runtime"]
-        IPFS["IPFS (Metadata)"]
+        SOR["Soroban Runtime"]
+        STELLAR["Stellar Core"]
+        META["IPFS (Metadata)"]
     end
 
     UI --> SDK
     WC --> SDK
-    CC --> Contracts
+    DC --> Contracts
     EV --> Contracts
     WF --> Contracts
-    MD --> IPFS
-    Contracts --> EVM
+    MD --> META
+    Contracts --> SOR
+    SOR --> STELLAR
 ```
 
 ### Layer Descriptions
 
 | Layer | Technology | Responsibility |
 |-------|-----------|----------------|
-| **Frontend** | React 19, Next.js 16, Tailwind CSS, wagmi, Reown AppKit | User interface, wallet connection, transaction signing |
-| **SDK** | TypeScript, ethers.js v6 | Type-safe contract interaction, event handling, workflow orchestration |
-| **Smart Contracts** | Solidity 0.8.33, OpenZeppelin, Foundry | Protocol logic, state management, access control, escrow |
-| **Blockchain** | Injective EVM | Consensus, finality, on-chain execution |
+| **Frontend** | React 19, Next.js 16, Tailwind CSS, Stellar wallet adapters | User interface, wallet connection, transaction signing |
+| **SDK** | TypeScript, @stellar/stellar-sdk | Type-safe contract interaction, event handling, workflow orchestration |
+| **Smart Contracts** | Rust, Soroban SDK, WebAssembly | Protocol logic, state management, access control, escrow |
+| **Blockchain** | Stellar Network | Consensus, finality, on-chain execution, asset infrastructure |
 | **Storage** | IPFS | Player and club metadata, document storage |
 
 ---
@@ -134,21 +151,20 @@ This monorepo contains three independent repositories, each with its own README 
 
 **Purpose** — Implements the core on-chain logic: identity registries, transfer marketplace, agreement management, escrow custody, and protocol treasury.
 
+**Current Status** — Contains a **complete Solidity/Foundry prototype** (legacy) and is the reference for the **Soroban/Rust re-implementation** (target).
+
 **Features**
 
-- Role-based access control via OpenZeppelin
-- Multi-token escrow support (any ERC-20)
+- Role-based access control
+- Multi-asset escrow support
 - Modular contract architecture (no hidden state coupling)
 - Minimal on-chain state (metadata lives off-chain via URI pointers)
 - Unit and integration test suites
-- Deployment scripts for local and testnet environments
 
 **Tech Stack**
 
-- Solidity 0.8.33
-- Foundry (Forge)
-- OpenZeppelin Contracts
-- Via IR compilation
+- **Target:** Rust, Soroban SDK, WebAssembly
+- **Legacy Prototype:** Solidity 0.8.33, Foundry, OpenZeppelin Contracts
 
 **Docs** — [`TransferChain-Contracts/README.md`](./TransferChain-Contracts/README.md)
 
@@ -159,6 +175,8 @@ This monorepo contains three independent repositories, each with its own README 
 > Official TypeScript SDK for interacting with the TransferChain protocol.
 
 **Purpose** — Provides a type-safe, framework-agnostic API for applications to read from and write to the TransferChain smart contracts.
+
+**Current Status** — Architecture reference built on ethers.js v6 (legacy). Target implementation will use `@stellar/stellar-sdk`.
 
 **Features**
 
@@ -171,10 +189,8 @@ This monorepo contains three independent repositories, each with its own README 
 
 **Tech Stack**
 
-- TypeScript 5.5
-- ethers.js v6
-- tsup (bundler)
-- Vitest (testing)
+- **Target:** TypeScript 5.5, @stellar/stellar-sdk, tsup, Vitest
+- **Legacy Prototype:** TypeScript 5.5, ethers.js v6
 
 **Docs** — [`TransferChain-SDK/README.md`](./TransferChain-SDK/README.md)
 
@@ -186,23 +202,20 @@ This monorepo contains three independent repositories, each with its own README 
 
 **Purpose** — Delivers a user-facing interface for clubs, players, and agents to register identities, browse listings, negotiate transfers, and manage escrow settlements.
 
+**Current Status** — MVP built with wagmi + Reown AppKit (EVM wallets). Target implementation will use Stellar wallet adapters (Freighter, Lobstr).
+
 **Features**
 
 - Player and club registration flows
 - Marketplace browsing and listing creation
-- Wallet connection via Reown AppKit
-- Multi-chain wallet support
-- IPFS metadata upload and resolution
+- Wallet connection
+- Off-chain metadata upload and resolution
 - Responsive design with Tailwind CSS
 
 **Tech Stack**
 
-- Next.js 16
-- React 19
-- wagmi + viem
-- Reown AppKit
-- Tailwind CSS
-- TanStack React Query
+- **Target:** Next.js 16, React 19, Stellar wallet adapters
+- **Legacy Prototype:** Next.js 16, React 19, wagmi + viem + Reown AppKit
 
 **Docs** — [`TransferChain-frontend/README.md`](./TransferChain-frontend/README.md)
 
@@ -212,26 +225,24 @@ This monorepo contains three independent repositories, each with its own README 
 
 | Feature | Status |
 |---------|--------|
-| Player Registry | Complete |
-| Club Registry | Complete |
-| Transfer Marketplace | Complete |
-| Transfer Agreements | Complete |
-| Escrow Settlement | Complete |
-| Treasury & Protocol Fees | Complete |
-| Role-based Access Control | Complete |
-| Event System | Complete |
-| TypeScript SDK | Complete |
-| Type-safe APIs | Complete |
-| Wallet Integration | Complete |
-| IPFS Metadata | Complete |
-| Unit & Integration Tests | Complete |
-| Account Abstraction | Planned |
+| Player Registry | Implemented (Prototype) |
+| Club Registry | Implemented (Prototype) |
+| Transfer Marketplace | Implemented (Prototype) |
+| Transfer Agreements | Implemented (Prototype) |
+| Escrow Settlement | Implemented (Prototype) |
+| Treasury & Protocol Fees | Implemented (Prototype) |
+| Role-based Access Control | Implemented (Prototype) |
+| Event System | Implemented (Prototype) |
+| Soroban Smart Contracts | Planned |
+| Stellar SDK | Planned |
+| Stellar Frontend Integration | Planned |
+| Account Abstraction / Sponsored Transactions | Planned |
 | AI Transfer Insights | Planned |
-| Multi-chain Support | Planned |
-| Mobile App | Planned |
 | Analytics Dashboard | Planned |
 | Scout Portal | Planned |
 | Agent Portal | Planned |
+
+> **Note:** "Implemented (Prototype)" refers to the legacy Solidity/Foundry implementation on Injective EVM. The Stellar/Soroban re-implementation is the active development target. See [docs/stellar-migration.md](./docs/stellar-migration.md) for details.
 
 ---
 
@@ -241,12 +252,11 @@ This monorepo contains three independent repositories, each with its own README 
 
 | Component | Technology |
 |-----------|-----------|
-| Language | Solidity 0.8.33 |
-| Framework | Foundry (Forge) |
-| Libraries | OpenZeppelin Contracts |
-| Network | Injective EVM |
-| Testnet Chain ID | 1439 |
-| Explorer | [Blockscout](https://testnet.blockscout.injective.network/) |
+| Language | Rust |
+| Smart Contracts | Soroban SDK (WebAssembly) |
+| Network | Stellar |
+| Testnet | Stellar Testnet |
+| Explorer | [Stellar Expert](https://stellar.expert/) |
 
 ### Frontend
 
@@ -255,7 +265,7 @@ This monorepo contains three independent repositories, each with its own README 
 | Framework | Next.js 16 |
 | UI Library | React 19 |
 | Styling | Tailwind CSS 4 |
-| Wallet | wagmi + viem + Reown AppKit |
+| Wallet | Stellar wallet adapters (Freighter, Lobstr) |
 | State | TanStack React Query |
 | Language | TypeScript 5 |
 
@@ -264,7 +274,7 @@ This monorepo contains three independent repositories, each with its own README 
 | Component | Technology |
 |-----------|-----------|
 | Language | TypeScript 5.5 |
-| Blockchain | ethers.js v6 |
+| Blockchain | @stellar/stellar-sdk |
 | Bundler | tsup |
 | Testing | Vitest |
 | Linting | ESLint + Prettier |
@@ -273,21 +283,9 @@ This monorepo contains three independent repositories, each with its own README 
 
 | Component | Technology |
 |-----------|-----------|
-| Smart Contracts | Foundry (forge test) |
+| Smart Contracts | Soroban testing framework (Rust) |
 | SDK | Vitest |
-| Integration Tests | Foundry + Vitest |
-
----
-
-## Why Injective?
-
-TransferChain is built on [Injective EVM](https://injective.com/) for several critical reasons:
-
-- **Fast Finality** — Transactions confirm rapidly, enabling near-instant settlement of transfer agreements and escrow releases.
-- **Low Fees** — Minimal gas costs make the protocol economically viable for transfers of all sizes, from youth academies to top-tier leagues.
-- **EVM Compatibility** — Full Ethereum Virtual Machine support means we leverage the entire Solidity and EVM ecosystem — OpenZeppelin, Foundry, ethers.js — without modification.
-- **Developer Tooling** — Injective provides robust RPC infrastructure, block explorers, and deployment tooling that accelerate development and auditing.
-- **Scalability** — The network is designed to handle high throughput without congestion, supporting the protocol as it scales globally.
+| Integration Tests | Soroban local network + Vitest |
 
 ---
 
@@ -297,24 +295,31 @@ TransferChain is built on [Injective EVM](https://injective.com/) for several cr
 
 | Milestone | Details |
 |-----------|---------|
-| Smart Contracts | 8 modular contracts deployed and verified |
-| Testnet Deployment | Injective EVM Testnet (Chain ID 1439) |
-| TypeScript SDK | Full SDK with domain clients, events, workflows |
+| Protocol Design | 8 modular contract domains designed |
+| Business Logic Prototype | Solidity/Foundry contracts with full test suite |
+| SDK Architecture | TypeScript SDK with domain clients, events, workflows |
 | Frontend MVP | Registration, marketplace, wallet integration |
 | Test Coverage | Unit tests for all contracts, integration tests |
-| Documentation | Per-repository READMEs and SDK docs |
+| Documentation | Per-repository READMEs, SDK architecture docs |
 
-### Roadmap
+### In Progress
+
+| Milestone | Details |
+|-----------|---------|
+| Soroban Contract Architecture | Contract domain mapping and Soroban design |
+| SDK Stellar Migration | ethers.js → @stellar/stellar-sdk migration plan |
+
+### Planned
 
 | Milestone | Status |
 |-----------|--------|
-| Account Abstraction | Planned |
+| Soroban Smart Contract Implementation | Planned |
+| Stellar Testnet Deployment | Planned |
+| Stellar SDK (TypeScript) | Planned |
+| Frontend Stellar Integration | Planned |
+| Sponsored Transactions | Planned |
 | AI Transfer Insights | Planned |
-| Multi-chain Support | Planned |
-| Mobile App | Planned |
 | Analytics Dashboard | Planned |
-| Scout Portal | Planned |
-| Agent Portal | Planned |
 | Mainnet Deployment | Planned |
 | Security Audit | Planned |
 
@@ -326,7 +331,8 @@ TransferChain is built on [Injective EVM](https://injective.com/) for several cr
 
 - [Node.js](https://nodejs.org/) >= 18
 - [pnpm](https://pnpm.io/)
-- [Foundry](https://book.getfoundry.sh/)
+- [Rust](https://www.rust-lang.org/tools/install) (for Soroban contracts)
+- [Soroban CLI](https://soroban.stellar.org/docs/getting-started/installation) (for contract development)
 
 ### Clone the Repository
 
@@ -339,7 +345,15 @@ cd TransferChain
 
 Each repository is self-contained. Choose the one relevant to your work.
 
-#### Smart Contracts
+#### Smart Contracts (Soroban — Target)
+
+```bash
+cd TransferChain-Contracts
+# Soroban contract build (when Rust contracts are available)
+# soroban contract build
+```
+
+#### Smart Contracts (Legacy Prototype)
 
 ```bash
 cd TransferChain-Contracts
@@ -379,14 +393,18 @@ npm run dev
 
 | Document | Description |
 |----------|-------------|
-| [Contracts README](./TransferChain-Contracts/README.md) | Smart contract architecture, deployment, and security model |
+| [Architecture](./docs/architecture.md) | System architecture and layer descriptions |
+| [Stellar Migration](./docs/stellar-migration.md) | EVM → Soroban migration guide and contract mapping |
+| [Development Guide](./docs/development.md) | Local development setup and workflows |
+| [Deployment Guide](./docs/deployment.md) | Deployment procedures and network configuration |
+| [Security](./docs/security.md) | Security model and vulnerability disclosure |
+| [Contracts README](./TransferChain-Contracts/README.md) | Smart contract architecture (legacy prototype) |
 | [SDK README](./TransferChain-SDK/README.md) | SDK installation, quick start, and domain clients |
 | [SDK Architecture](./TransferChain-SDK/docs/architecture.md) | SDK internal architecture and design decisions |
 | [SDK Configuration](./TransferChain-SDK/docs/configuration.md) | SDK configuration options |
 | [SDK Public API](./TransferChain-SDK/docs/public-api.md) | Complete API reference |
 | [SDK Error Handling](./TransferChain-SDK/docs/error-handling.md) | Error types and handling patterns |
 | [Frontend README](./TransferChain-frontend/README.md) | Frontend setup and development |
-| [Deployment Manifest](./TransferChain-Contracts/deployments/1439.json) | Deployed contract addresses on Injective Testnet |
 
 ---
 
@@ -411,7 +429,7 @@ feat: add player eligibility check
 fix: resolve escrow release race condition
 docs: update SDK configuration guide
 test: add integration tests for marketplace
-chore: update OpenZeppelin to v5.1
+chore: update Soroban SDK to latest
 ```
 
 ### Pull Request Workflow
@@ -419,13 +437,13 @@ chore: update OpenZeppelin to v5.1
 1. Fork the repository
 2. Create a feature branch from `develop`
 3. Make your changes
-4. Run tests (`forge test` for contracts, `pnpm test:all` for SDK)
+4. Run tests
 5. Submit a PR against `develop`
 6. Ensure CI passes and receive at least one review
 
 ### Code Style
 
-- **Solidity**: Follow [Solidity style guide](https://docs.soliditylang.org/en/latest/style-guide.html). Use custom errors over require strings.
+- **Rust**: Follow the [Rust API guidelines](https://rust-lang.github.io/api-guidelines/). Use `clippy` and `rustfmt`.
 - **TypeScript**: Enforced via ESLint and Prettier. Run `pnpm lint` and `pnpm format` before committing.
 - **General**: Write tests for all new functionality. Keep PRs focused and small.
 
@@ -453,6 +471,104 @@ Please follow our responsible disclosure process:
    - Suggested fix (if available)
 
 We will acknowledge receipt within 48 hours and work with you to understand and address the issue before any public disclosure.
+
+---
+
+## Roadmap
+
+### Phase 1: Core Protocol Architecture
+
+- [x] Protocol domain model design
+- [x] Solidity/Foundry prototype implementation
+- [x] SDK architecture and design
+- [x] Frontend MVP
+
+### Phase 2: Soroban Contract Implementation
+
+- [ ] Soroban contract architecture design
+- [ ] `access_control` contract
+- [ ] `config` contract
+- [ ] `player_registry` contract
+- [ ] `club_registry` contract
+- [ ] `marketplace` contract
+- [ ] `agreement_manager` contract
+- [ ] `escrow` contract
+- [ ] `treasury` contract
+- [ ] Soroban unit tests
+
+### Phase 3: Stellar SDK
+
+- [ ] @stellar/stellar-sdk integration
+- [ ] Domain clients (players, clubs, marketplace, agreements, escrow, treasury)
+- [ ] Event system for Soroban events
+- [ ] Metadata resolver (IPFS + HTTP)
+- [ ] Workflow orchestration
+- [ ] Unit and integration tests
+
+### Phase 4: Frontend Integration
+
+- [ ] Stellar wallet adapter integration (Freighter, Lobstr)
+- [ ] Soroban contract interaction via SDK
+- [ ] Transaction status and explorer links
+- [ ] Responsive design updates
+
+### Phase 5: Testnet Deployment
+
+- [ ] Stellar Testnet deployment
+- [ ] End-to-end testing on testnet
+- [ ] Developer documentation and guides
+- [ ] Example applications
+
+### Phase 6: Developer Ecosystem
+
+- [ ] CLI tooling for contract management
+- [ ] React hooks library
+- [ ] Community plugin system
+- [ ] Analytics and reporting
+
+### Future
+
+- Sponsored transactions / fee sponsorship
+- AI-powered transfer insights
+- Analytics dashboard
+- Scout tools
+- Agent tools
+- Academy support
+- Mobile experience
+- Additional integrations
+
+---
+
+## Open Source Vision
+
+TransferChain is an open-source protocol. We believe football transfer infrastructure should be transparent, auditable, and accessible to all.
+
+### What Developers Can Build
+
+- **Club Applications** — Registration, transfer management, and escrow tools for football clubs
+- **Agent Platforms** — Negotiation and agreement management tools for player agents
+- **Player Dashboards** — Self-service registration, contract viewing, and status tracking
+- **Analytics Tools** — Transfer volume analytics, market insights, and reporting
+- **Integrations** — Connect TransferChain with existing football management systems
+- **Mobile Apps** — Native mobile experiences using the TransferChain SDK
+
+### How Contributors Can Participate
+
+- **Smart Contracts** — Implement and audit Soroban contract logic
+- **SDK Development** — Improve the TypeScript SDK and add language bindings
+- **Frontend** — Build UI components and improve user experience
+- **Documentation** — Write guides, tutorials, and API documentation
+- **Testing** — Write tests, report bugs, and verify deployments
+- **Community** — Help others, answer questions, and share knowledge
+
+### How the Protocol Can Evolve
+
+TransferChain follows a governance model where protocol changes are proposed, discussed, and implemented through the open-source process. The protocol is designed to be extended through:
+
+- New Soroban contract modules
+- SDK plugins and extensions
+- Community-contributed integrations
+- Standardized interfaces for third-party tools
 
 ---
 
@@ -507,5 +623,5 @@ The beautiful game deserves a transfer system worthy of it.
 ---
 
 <p align="center">
-  Built with care on <a href="https://injective.com/">Injective EVM</a>.
+  Built with care on <a href="https://stellar.org/">Stellar</a>.
 </p>

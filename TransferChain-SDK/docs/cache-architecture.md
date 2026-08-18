@@ -1,5 +1,7 @@
 # Cache Architecture
 
+> **Migration Notice:** This document describes the caching architecture for the legacy ethers.js v6 implementation. The contract caching pattern (read/write contract separation) will change with the Stellar SDK migration, as Soroban does not have the same immutability constraint.
+
 ## Table of Contents
 
 - [Cache Layers](#cache-layers)

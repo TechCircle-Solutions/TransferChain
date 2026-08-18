@@ -182,7 +182,7 @@ This is the primary pattern for most use cases — consumers rarely need to quer
 
 ## Event Decoding
 
-The `EventDecoder` converts raw `ethers.Log` objects into typed events:
+The `EventDecoder` converts raw Soroban event objects into typed events:
 
 1. **Topic matching:** The log's first topic is compared against known event signatures
 2. **ABI decoding:** Matching logs are decoded using the contract's interface

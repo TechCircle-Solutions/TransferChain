@@ -1,139 +1,98 @@
-# Account Abstraction
+# Account Abstraction & Sponsored Transactions
 
-> This document describes the SDK's readiness for ERC-4337 Account Abstraction support. AA is not yet implemented.
+> This document describes the SDK's readiness for Stellar sponsored transaction support. Sponsored transactions are not yet implemented.
 
 ## Table of Contents
 
 - [Current State](#current-state)
-- [Architectural Readiness](#architectural-readiness)
-- [How It Works Today](#how-it-works-today)
-- [Future: Native AA Support](#future-native-aa-support)
-- [ERC-4337 Considerations](#erc-4337-considerations)
+- [Stellar Sponsored Transactions](#stellar-sponsored-transactions)
+- [Future: Native Sponsored Support](#future-native-sponsored-support)
+- [Stellar vs EVM Account Abstraction](#stellar-vs-evm-account-abstraction)
 
 ---
 
 ## Current State
 
-The SDK currently uses raw `ethers.Signer` for transaction submission. Account Abstraction (ERC-4337) is not implemented.
+The SDK currently uses a `Keypair` or secret key for transaction submission. Sponsored transactions (where a third party pays fees) are not implemented.
 
-Consumers who use smart contract wallets (Safe, Biconomy, ZeroDev) can pass the wallet's `Signer` instance directly to the SDK. The SDK works without modification because it calls `signer.sendTransaction()`, which smart contract wallet signers redirect to `eth_sendUserOperation` internally.
-
----
-
-## Architectural Readiness
-
-The architecture supports AA through three design decisions:
-
-### 1. SignerManager Accepts Any ethers.Signer
-
-Smart contract wallets implement `ethers.Signer`. When a consumer passes an AA-enabled signer, the SDK works without modification.
-
-```typescript
-// This "just works" with AA-enabled signers
-const tc = new TransferChain({
-  chainId: 8888,
-  rpcUrl: "...",
-  signer: safeSigner,  // Safe smart account signer
-});
-```
-
-### 2. TransactionManager Uses signer.sendTransaction()
-
-The SDK calls `signer.sendTransaction()`, not `provider.sendRawTransaction()`. Smart contract wallet signers intercept this call and handle UserOp construction internally.
-
-### 3. Middleware Can Modify Overrides
-
-AA-specific logic (setting smart account nonce, adding paymaster data) can be injected via middleware without changing domain clients.
-
-```typescript
-const aaMiddleware: Middleware = {
-  name: "aa-support",
-  beforeSubmit: async (ctx) => {
-    // Add paymaster data for gas sponsorship
-    ctx.overrides.customData = {
-      paymasterAndData: paymasterAddress,
-    };
-  },
-};
-```
+Consumers who want sponsored transactions can build custom transaction flows outside the SDK. The SDK architecture supports adding this as a first-class feature.
 
 ---
 
-## How It Works Today
+## Stellar Sponsored Transactions
 
-| Scenario | How It Works |
-|----------|-------------|
-| EOA wallet | Private key → `ethers.Wallet` → `sendTransaction()` → raw TX |
-| MetaMask | `BrowserProvider.getSigner()` → `sendTransaction()` → MetaMask popup |
-| WalletConnect | WalletConnect signer → `sendTransaction()` → relay |
-| Smart account (Safe) | Safe signer → `sendTransaction()` → UserOp → bundler |
+Stellar has native support for fee sponsorship and authorization delegation, which provides similar benefits to EVM account abstraction but with different mechanics:
 
-The SDK does not need to know which type of signer it is using. The signer handles the transport.
+### Fee Sponsorship (fee-bumping)
+
+A third-party account can pay the network fee for a transaction:
+
+```typescript
+// Sponsor pays the network fee
+const baseFee = await server.getBaseFee();
+const sponsoredTx = new TransactionBuilder(sponsorAccount, {
+  fee: baseFee,
+})
+  .addOperation(contract.call("register_player", ...))
+  .setNetworkPassphrase(networkPassphrase)
+  .build();
+
+// Sponsor signs first (authorizes the fee payment)
+sponsoredTx.sign(sponsorKeypair);
+
+// Invoker signs second (authorizes the contract call)
+sponsoredTx.sign(invokerKeypair);
+
+// Submit
+await server.sendTransaction(sponsoredTx);
+```
+
+### Authorization Entries
+
+Soroban uses authorization entries to delegate signing authority. A contract can require authorization from multiple parties in a single transaction.
 
 ---
 
-## Future: Native AA Support
+## Future: Native Sponsored Support
 
-When AA becomes a product requirement, the SDK can add:
+When sponsored transactions become a product requirement, the SDK can add:
 
-### AASignerAdapter
+### SponsorManager
 
-A wrapper that converts smart account providers into `ethers.Signer` instances:
-
-```typescript
-import { AASignerAdapter } from "@transferchain/sdk/aa";
-
-const aaSigner = new AASignerAdapter({
-  accountFactory: "0x...",
-  bundlerUrl: "https://bundler.example.com",
-  paymasterUrl: "https://paymaster.example.com",
-});
-
-const tc = new TransferChain({
-  chainId: 8888,
-  rpcUrl: "...",
-  signer: aaSigner,
-});
-```
-
-### AA-Specific Middleware
-
-Built-in middleware for common AA patterns:
-
-- **GasSponsorshipMiddleware** — Configures paymaster for gasless transactions
-- **NonceManagementMiddleware** — Manages smart account nonces
-- **BatchMiddleware** — Combines multiple operations into a single UserOp
-
-### SmartAccountConfig
-
-A new `SdkConfig` option for AA-specific configuration:
+A dedicated service for managing fee sponsorship:
 
 ```typescript
 const tc = new TransferChain({
-  chainId: 8888,
-  rpcUrl: "...",
-  aa: {
-    accountFactory: "0x...",
-    bundlerUrl: "https://bundler.example.com",
-    paymasterUrl: "https://paymaster.example.com",
-    gasSponsored: true,
+  networkPassphrase: "Test SDF Network ; September 2015",
+  rpcUrl: "https://soroban-testnet.stellar.org",
+  sponsor: {
+    secretKey: "S...", // or wallet adapter
   },
 });
+
+// All write operations automatically use fee sponsorship
+await tc.marketplace.createListing(params);
 ```
+
+### Sponsorship Middleware
+
+Built-in middleware for common sponsorship patterns:
+
+- **FeeBumpMiddleware** — Automatically wraps transactions with fee sponsorship
+- **AuthorizationMiddleware** — Manages multi-party authorization entries
+- **BatchMiddleware** — Combines multiple operations into a single transaction
 
 ---
 
-## ERC-4337 Considerations
+## Stellar vs EVM Account Abstraction
 
-### Key Differences from EOA Transactions
-
-| Aspect | EOA | AA (ERC-4337) |
-|--------|-----|---------------|
-| Transaction type | `0x02` (EIP-1559) | UserOperation |
-| Submission | `eth_sendRawTransaction` | `eth_sendUserOperation` |
-| Gas payment | Sender pays in native token | Paymaster can sponsor |
-| Nonce management | Sequential | Sender + nonce key |
-| Signature | Single signer | Account contract validates |
+| Aspect | EVM (ERC-4337) | Stellar (Fee Sponsorship) |
+|--------|---------------|---------------------------|
+| Mechanism | UserOperation + Bundler | Fee-bump transaction + Auth entries |
+| Fee payment | Paymaster contract | Sponsor account |
+| Authorization | Account contract validates | `require_auth()` per invoker |
+| Nonce management | Smart account nonces | Sequence numbers |
+| Complexity | High (bundler, paymaster, factory) | Low (native protocol support) |
 
 ### What Does NOT Change
 
@@ -141,10 +100,3 @@ const tc = new TransferChain({
 - `TransactionResult` return type is unchanged
 - Event decoding is unchanged
 - Read methods are completely unaffected
-
-### What Might Change
-
-- Transaction confirmation timing (bundler batching)
-- Gas estimation (paymaster simulation)
-- Error types (bundler-specific errors)
-- Transaction hash semantics (UserOp hash vs TX hash)
